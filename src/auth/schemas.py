@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class TokenBase(BaseModel):
@@ -19,11 +19,10 @@ class Token(TokenBase):
 
 
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
     name: str
     lastname: str
     surname: str
-    salary: int
 
 
 class UserCreate(UserBase):
@@ -32,7 +31,6 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    token: list[Token] = []
 
     class Config:
         orm_mode = True

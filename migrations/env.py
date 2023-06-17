@@ -1,3 +1,5 @@
+import os
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -5,9 +7,11 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from config import DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASS
-# from database import metadata
-from database import Base
+sys.path.append(os.path.join(sys.path[0], 'src'))
+
+from src.config import DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASS
+from src.auth.models import Base as auth_base
+from src.salary.models import Base as salary_base
 
 config = context.config
 
@@ -21,7 +25,7 @@ config.set_section_option(section, "DB_PASS", DB_PASS)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = auth_base.metadata
 
 
 def run_migrations_offline() -> None:
