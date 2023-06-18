@@ -1,7 +1,10 @@
 import hashlib
 import uuid
 from time import time
+from typing import Annotated
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,6 +12,9 @@ from sqlalchemy.orm import selectinload
 from src.auth import models
 from src.auth.schemas import UserCreate
 from src.config import TOKEN_LIFETIME
+from src.database import get_async_session
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 
 async def create_token(db: AsyncSession, user: models.User):
@@ -64,33 +70,32 @@ async def get_token(access_token: str, db: AsyncSession):
     return result.scalars().first()
 
 
-async def check_token(token, db: AsyncSession):
+async def get_current_user(access_token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_async_session)):
+    token = await get_token(access_token, db)
     if not token:
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token.user
+
+
+async def check_token(access_token: Annotated[str, Depends(oauth2_scheme)],
+                      db: AsyncSession = Depends(get_async_session)):
+    token = await get_token(access_token, db)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
     if token.time_create < int(time()) - int(TOKEN_LIFETIME):
         await db.delete(token)
         await db.commit()
-        return False
-
-    return True
-
-# def check_permission(func):
-#     def _wrapper(*args, db: AsyncSession = Depends(get_async_session), **kwargs):
-#         print("***********", kwargs)
-#         access_token = kwargs["request"].cookies.get("access_token")
-#         if not access_token:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="You are not logged in."
-#             )
-#
-#         token = await get_token(access_token, db)
-#         if not await check_token(token, db):
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="access_token is expired. You need re-log in."
-#             )
-#         return func(*args, **kwargs, token=token)
-#
-#     return _wrapper
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token is expired. You need re-log in.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )

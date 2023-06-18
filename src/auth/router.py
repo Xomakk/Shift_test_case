@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Response, HTTPException
-from pydantic import EmailStr
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import TOKEN_LIFETIME
 from src.salary import models as salary_model
 from src.auth import schemas
-from src.auth.utils import create_token, get_user_by_email, create_user
+from src.auth.utils import create_token, get_user_by_email, create_user, get_current_user, oauth2_scheme, check_token, \
+    get_token
 from src.database import get_async_session
 from src.salary.utils import create_salary
 
@@ -30,29 +30,36 @@ async def create_new_user(user_data: schemas.UserCreate, db: AsyncSession = Depe
     return new_user
 
 
-@router.post("/login", response_model=schemas.User)
-async def login(response: Response, email: Annotated[EmailStr, Form()], password: Annotated[str, Form()],
+@router.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(),
                 db: AsyncSession = Depends(get_async_session)):
-    user = await get_user_by_email(email, db)
+    user = await get_user_by_email(form_data.username, db)
     if not user:
         raise HTTPException(
             status_code=400,
-            detail="User not found"
+            detail="Incorrect email or password"
         )
-    if not user.verify_password(password):
+    if not user.verify_password(form_data.password):
         raise HTTPException(
             status_code=400,
-            detail="Password error"
+            detail="Incorrect email or password"
         )
 
     access_token = await create_token(db, user)
-    response.set_cookie(key="access_token", value=access_token, max_age=TOKEN_LIFETIME)
-    return user
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/logout")
-async def logout(response: Response, db: AsyncSession = Depends(get_async_session)):
-    response.delete_cookie("access_token")
+@router.get("/user", response_model=schemas.User, dependencies=[Depends(check_token)])
+async def get_user(current_user: schemas.User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/logout", dependencies=[Depends(check_token)])
+async def logout(access_token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_async_session)):
+    token = await get_token(access_token, db)
+    await db.delete(token)
+    await db.commit()
+
     return HTTPException(
         status_code=200,
         detail="Logout success"
