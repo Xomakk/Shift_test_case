@@ -54,7 +54,7 @@ async def get_user(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/logout", dependencies=[Depends(check_token)])
+@router.get("/logout", dependencies=[Depends(check_token)])
 async def logout(access_token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_async_session)):
     token = await get_token(access_token, db)
     await db.delete(token)

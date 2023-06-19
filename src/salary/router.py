@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.post("/edit", response_model=schemas.SalaryEdit, dependencies=[Depends(check_token)])
+@router.post("/edit", response_model=schemas.SalaryEdit)
 async def edit_salary_for_current_user(
         data: schemas.SalaryEdit,
         current_user: user_schemas.User = Depends(get_current_user),
@@ -23,7 +23,7 @@ async def edit_salary_for_current_user(
     return edited_salary
 
 
-@router.get("/get", response_model=schemas.Salary, dependencies=[Depends(check_token)])
+@router.get("/my", response_model=schemas.Salary)
 async def get_current_user_salary(
         current_user: user_schemas.User = Depends(get_current_user),
         db: AsyncSession = Depends(get_async_session)
