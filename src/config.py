@@ -11,4 +11,4 @@ DB_PASS = os.environ.get("DB_PASS")
 
 DB_NAME_TEST = os.environ.get("DB_NAME_TEST")
 
-TOKEN_LIFETIME = os.environ.get("TOKEN_LIFETIME")
+TOKEN_LIFETIME = os.environ.get("TOKEN_LIFETIME", 300)

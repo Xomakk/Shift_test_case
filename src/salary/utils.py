@@ -1,7 +1,6 @@
 import uuid
-from typing import Optional
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import select, UUID, Column
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,14 +20,13 @@ async def create_salary(user_id: Column[uuid.UUID], db: AsyncSession) -> models.
     return db_salary
 
 
-async def get_salary_by_user_id(user_id: UUID, db: AsyncSession) -> models.Salary:
+async def get_salary_by_user_id(user_id: uuid.UUID, db: AsyncSession) -> models.Salary:
     query = select(models.Salary).where(models.Salary.user_id == user_id)
     result = await db.execute(query)
-    salary = result.scalars().one()
-    return salary
+    return result.scalars().one()
 
 
-async def edit_user_salary(user_id: UUID, salary_data: schemas.SalaryEdit, db: AsyncSession) -> models.Salary:
+async def edit_user_salary(user_id: uuid.UUID, salary_data: schemas.SalaryEdit, db: AsyncSession) -> models.Salary:
     salary = await get_salary_by_user_id(user_id, db)
     try:
         salary.size = salary_data.size
@@ -37,7 +35,7 @@ async def edit_user_salary(user_id: UUID, salary_data: schemas.SalaryEdit, db: A
         await db.commit()
     except DBAPIError:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="The increase_date is in the wrong format"
         )
     return salary

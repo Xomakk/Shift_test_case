@@ -1,12 +1,12 @@
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel
-from sqlalchemy import UUID, Column
 
 
 class SalaryBase(BaseModel):
-    size: Column[int]
-    increase_date: Column[datetime]
+    size: int
+    increase_date: datetime
 
     class Config:
         orm_mode = True
@@ -17,7 +17,7 @@ class SalaryEdit(SalaryBase):
 
 
 class Salary(SalaryBase):
-    id: UUID
+    id: uuid.UUID
 
     class Config:
         orm_mode = True

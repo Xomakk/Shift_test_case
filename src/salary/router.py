@@ -19,8 +19,7 @@ async def edit_salary_for_current_user(
         current_user: user_schemas.User = Depends(get_current_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> models.Salary:
-    edited_salary = await edit_user_salary(current_user.id, data, db)
-    return edited_salary
+    return await edit_user_salary(current_user.id, data, db)
 
 
 @router.get("/my", response_model=schemas.Salary)
@@ -28,5 +27,4 @@ async def get_current_user_salary(
         current_user: user_schemas.User = Depends(get_current_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> models.Salary:
-    salary = await get_salary_by_user_id(current_user.id, db)
-    return salary
+    return await get_salary_by_user_id(current_user.id, db)

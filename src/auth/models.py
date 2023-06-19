@@ -17,11 +17,8 @@ class User(Base):
     lastname = Column(String, nullable=False)
     surname = Column(String, nullable=False)
 
-    token = relationship("Token", back_populates="user", uselist=False)
+    token = relationship("Token", back_populates="user")
     salary = relationship("Salary", back_populates="user", uselist=False)
-
-    def verify_password(self, input_password: str) -> ColumnElement[bool]:
-        return self.password == hashlib.sha256(input_password.encode('utf-8')).hexdigest()
 
 
 class Token(Base):

@@ -1,11 +1,12 @@
 import uuid
 from typing import Annotated, Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import UUID, Column
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.utils import verify_password
 from src.salary import models as salary_model
 from src.auth import schemas, models
 from src.auth import utils
@@ -24,7 +25,7 @@ async def create_new_user(user_data: schemas.UserCreate,
     user = await utils.get_user_by_email(user_data.email, db)
     if user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="This email is already registered"
         )
     new_user = await utils.create_user(user_data, db)
@@ -38,12 +39,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
     user = await utils.get_user_by_email(form_data.username, db)
     if not user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"
         )
-    if not user.verify_password(form_data.password):
+    if not await verify_password(user.password, form_data.password):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"
         )
 
@@ -58,12 +59,9 @@ async def get_user(current_user: schemas.User = Depends(utils.get_current_user))
 
 @router.get("/logout", dependencies=[Depends(utils.check_token)])
 async def logout(access_token: Annotated[str, Depends(utils.oauth2_scheme)],
-                 db: AsyncSession = Depends(get_async_session)) -> HTTPException:
+                 db: AsyncSession = Depends(get_async_session)) -> None:
     token = await utils.get_token(access_token, db)
     await db.delete(token)
     await db.commit()
 
-    return HTTPException(
-        status_code=200,
-        detail="Logout success"
-    )
+    return

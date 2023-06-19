@@ -1,11 +1,12 @@
 import hashlib
 import uuid
 from time import time
-from typing import Annotated
+from typing import Annotated, Union
 
+import sqlalchemy.exc
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import select, Column
+from sqlalchemy import select, Column, ColumnElement
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -46,28 +47,41 @@ async def create_user(data: UserCreate, db: AsyncSession) -> models.User:
     return db_user
 
 
-async def get_user_by_email(email: str, db: AsyncSession) -> models.User:
-    query = select(models.User).where(models.User.email == email).options(
-        selectinload(models.User.token), selectinload(models.User.salary)
-    )
-    result = await db.execute(query)
-    return result.scalars().one()
+async def get_user_by_email(email: str, db: AsyncSession) -> Union[models.User, None]:
+    try:
+        query = select(models.User).where(models.User.email == email).options(
+            selectinload(models.User.token), selectinload(models.User.salary)
+        )
+        result = await db.execute(query)
+        return result.scalars().one()
+    except sqlalchemy.exc.NoResultFound:
+        return None
 
 
-async def get_user_by_id(id: int, db: AsyncSession) -> models.User:
-    query = select(models.User).where(models.User.id == id).options(
-        selectinload(models.User.token), selectinload(models.User.salary)
-    )
-    result = await db.execute(query)
-    return result.scalars().one()
+async def get_user_by_id(id: int, db: AsyncSession) -> Union[models.User, None]:
+    try:
+        query = select(models.User).where(models.User.id == id).options(
+            selectinload(models.User.token), selectinload(models.User.salary)
+        )
+        result = await db.execute(query)
+        return result.scalars().one()
+    except sqlalchemy.exc.NoResultFound:
+        return None
 
 
 async def get_token(access_token: str, db: AsyncSession) -> models.Token:
-    query = select(models.Token).where(models.Token.access_token == access_token).options(
-        selectinload(models.Token.user)
-    )
-    result = await db.execute(query)
-    return result.scalars().one()
+    try:
+        query = select(models.Token).where(models.Token.access_token == access_token).options(
+            selectinload(models.Token.user)
+        )
+        result = await db.execute(query)
+        return result.scalars().one()
+    except sqlalchemy.exc.NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token is expired. You need re-log in.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 async def get_current_user(
@@ -102,3 +116,7 @@ async def check_token(access_token: Annotated[str, Depends(oauth2_scheme)],
             detail="Token is expired. You need re-log in.",
             headers={"WWW-Authenticate": "Bearer"}
         )
+
+
+async def verify_password(user_password: Column[str], input_password: str) -> ColumnElement[bool]:
+    return user_password == hashlib.sha256(input_password.encode('utf-8')).hexdigest()
