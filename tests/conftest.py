@@ -14,8 +14,13 @@ from src.config import DB_PASS, DB_PORT, DB_USER, DB_HOST, DB_NAME_TEST
 from src.database import Base, get_async_session
 from src.main import app
 
-DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME_TEST}"
-
+DATABASE_URL = "postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}".format(
+    user=DB_USER,
+    password=DB_PASS,
+    host=DB_HOST,
+    port=DB_PORT,
+    db_name=DB_NAME_TEST
+)
 engine_test = create_async_engine(DATABASE_URL)
 async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 Base.metadata.bind = engine_test

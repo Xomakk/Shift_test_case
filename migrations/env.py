@@ -7,25 +7,26 @@ from sqlalchemy import pool
 
 from alembic import context
 
-sys.path.append(os.path.join(sys.path[0], 'src'))
+from src import config as cfg
+from src.database import Base
+from src.auth import models as auth_models
+from src.salary import models as salary_models
 
-from src.config import DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASS
-from src.auth.models import Base as auth_base
-from src.salary.models import Base as salary_base
+sys.path.append(os.path.join(sys.path[0], 'src'))
 
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, "DB_HOST", DB_HOST)
-config.set_section_option(section, "DB_PORT", DB_PORT)
-config.set_section_option(section, "DB_USER", DB_USER)
-config.set_section_option(section, "DB_NAME", DB_NAME)
-config.set_section_option(section, "DB_PASS", DB_PASS)
+config.set_section_option(section, "DB_HOST", cfg.DB_HOST)
+config.set_section_option(section, "DB_PORT", cfg.DB_PORT)
+config.set_section_option(section, "DB_USER", cfg.DB_USER)
+config.set_section_option(section, "DB_NAME", cfg.DB_NAME)
+config.set_section_option(section, "DB_PASS", cfg.DB_PASS)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = auth_base.metadata
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

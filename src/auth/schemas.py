@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import UUID
 
 
 class TokenBase(BaseModel):
-    access_token: str
+    access_token: UUID
     time_create: float
 
 
@@ -11,8 +12,8 @@ class TokenCreate(TokenBase):
 
 
 class Token(TokenBase):
-    id: int
-    user_id: int
+    id: UUID
+    user_id: UUID
 
     class Config:
         orm_mode = True
@@ -30,7 +31,7 @@ class UserCreate(UserBase):
 
 
 class User(UserBase):
-    id: int
+    id: UUID
 
     class Config:
         orm_mode = True

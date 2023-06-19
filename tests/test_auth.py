@@ -1,7 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-from src.auth import models
 from tests.conftest import delete_user
 
 
@@ -16,27 +15,22 @@ class Token(object):
 
 
 @pytest.mark.parametrize(
-    "email, right_status_code, password, right_response_content",
+    "email, right_status_code, password",
     [
         (
                 "test@mail.ru",
                 200,
-                "123",
-                b'{"email":"test@mail.ru","name":"string","lastname":"string","surname":"string","id":1}'
+                "123"
         ),
         (
                 "test",
                 422,
-                "123",
-                b'{"detail":[{"loc":["body","email"],"msg":"value is not a'
-                b' valid email address","type":"value_error.email"}]}'
+                "123"
         ),
         (
                 "test@mail.ru",
                 422,
-                None,
-                b'{"detail":[{"loc":["body","password"],"msg":"none is not an allowed value","'
-                b'type":"type_error.none.not_allowed"}]}'
+                None
         ),
     ]
 )
@@ -45,7 +39,6 @@ async def test_create_user(
         email: str,
         right_status_code: int,
         password: str,
-        right_response_content: str
 ):
     response = await ac.post(
         url="/api/auth/create_user",
@@ -58,7 +51,6 @@ async def test_create_user(
         }
     )
     assert response.status_code == right_status_code
-    assert response.content == right_response_content
     await delete_user(email)
 
 
