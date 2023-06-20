@@ -4,9 +4,7 @@ from typing import AsyncGenerator
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from fastapi.testclient import TestClient
 
 from src.auth import models
@@ -22,7 +20,7 @@ DATABASE_URL = "postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}".
     db_name=DB_NAME_TEST
 )
 engine_test = create_async_engine(DATABASE_URL)
-async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 Base.metadata.bind = engine_test
 
 
@@ -35,7 +33,7 @@ app.dependency_overrides[get_async_session] = override_get_async_session
 
 
 @pytest.fixture(autouse=True, scope='session')
-async def prepare_database():
+async def prepare_database() -> None:
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -60,7 +58,7 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
         yield ac
 
 
-async def delete_user(email):
+async def delete_user(email) -> None:
     async with async_session_maker() as session:
         query = select(models.User).where(models.User.email == email)
         result = await session.execute(query)
