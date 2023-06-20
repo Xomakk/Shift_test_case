@@ -1,7 +1,6 @@
 import uuid
 
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import Column
 
 
 class TokenBase(BaseModel):

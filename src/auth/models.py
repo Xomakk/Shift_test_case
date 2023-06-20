@@ -1,7 +1,6 @@
-import hashlib
 import uuid
 from time import time
-from sqlalchemy import Integer, String, Column, ForeignKey, UUID, ColumnElement
+from sqlalchemy import Integer, String, Column, ForeignKey, UUID
 from sqlalchemy.orm import relationship
 
 from src.database import Base

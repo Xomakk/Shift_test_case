@@ -3,7 +3,6 @@ from typing import Annotated, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import UUID, Column
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.utils import verify_password
@@ -35,7 +34,7 @@ async def create_new_user(user_data: schemas.UserCreate,
 
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),
-                db: AsyncSession = Depends(get_async_session)) -> dict[str, Union[Column[uuid.UUID], str]]:
+                db: AsyncSession = Depends(get_async_session)) -> dict[str, Union[uuid.UUID, str]]:
     user = await utils.get_user_by_email(form_data.username, db)
     if not user:
         raise HTTPException(
