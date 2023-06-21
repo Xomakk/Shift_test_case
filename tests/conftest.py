@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from fastapi.testclient import TestClient
 
-from src.auth.api import models
+from src.auth.api.v1 import models
 from src.config import DB_PASS, DB_PORT, DB_USER, DB_HOST, DB_NAME_TEST
 from src.database import Base, get_async_session
 from src.main import app

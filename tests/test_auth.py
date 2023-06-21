@@ -41,7 +41,7 @@ async def test_create_user(
         password: str,
 ):
     response = await ac.post(
-        url="/api/auth/create_user",
+        url="/api/v1/auth/create_user",
         json={
             "email": email,
             "name": "string",
@@ -64,7 +64,7 @@ async def test_create_user(
 )
 async def test_login_user(ac: AsyncClient, username: str, password: str, right_status_code: int):
     await ac.post(
-        url="/api/auth/create_user",
+        url="/api/v1/auth/create_user",
         json={
             "email": "test-login@mail.ru",
             "name": "string",
@@ -75,7 +75,7 @@ async def test_login_user(ac: AsyncClient, username: str, password: str, right_s
     )
 
     response = await ac.post(
-        url="/api/auth/login",
+        url="/api/v1/auth/login",
         headers={"content-type": "application/x-www-form-urlencoded"},
         data={
             "username": username,
@@ -98,7 +98,7 @@ async def test_get_current_user(ac: AsyncClient, send_token: bool, right_status_
     email = "test-get-current-user@mail.ru"
     password = "123"
     await ac.post(
-        url="/api/auth/create_user",
+        url="/api/v1/auth/create_user",
         json={
             "email": email,
             "name": "string",
@@ -109,7 +109,7 @@ async def test_get_current_user(ac: AsyncClient, send_token: bool, right_status_
     )
 
     response = await ac.post(
-        url="/api/auth/login",
+        url="/api/v1/auth/login",
         headers={"content-type": "application/x-www-form-urlencoded"},
         data={
             "username": email,
@@ -120,12 +120,12 @@ async def test_get_current_user(ac: AsyncClient, send_token: bool, right_status_
     token = response.json().get("access_token")
     if send_token:
         response = await ac.get(
-            url="/api/auth/user",
+            url="/api/v1/auth/user",
             headers={"authorization": f"Bearer {token}"}
         )
     else:
         response = await ac.get(
-            url="/api/auth/user",
+            url="/api/v1/auth/user",
         )
     assert response.status_code == right_status_code
     await delete_user(email)
@@ -142,7 +142,7 @@ async def test_logout(ac: AsyncClient, send_token: bool, right_status_code: int)
     email = "test-logout@mail.ru"
     password = "123"
     await ac.post(
-        url="/api/auth/create_user",
+        url="/api/v1/auth/create_user",
         json={
             "email": email,
             "name": "string",
@@ -153,7 +153,7 @@ async def test_logout(ac: AsyncClient, send_token: bool, right_status_code: int)
     )
 
     response = await ac.post(
-        url="/api/auth/login",
+        url="/api/v1/auth/login",
         headers={"content-type": "application/x-www-form-urlencoded"},
         data={
             "username": email,
@@ -164,12 +164,12 @@ async def test_logout(ac: AsyncClient, send_token: bool, right_status_code: int)
     token = response.json().get("access_token")
     if send_token:
         response = await ac.get(
-            url="/api/auth/logout",
+            url="/api/v1/auth/logout",
             headers={"authorization": f"Bearer {token}"}
         )
     else:
         response = await ac.get(
-            url="/api/auth/logout"
+            url="/api/v1/auth/logout"
         )
     assert response.status_code == right_status_code
     await delete_user(email)
