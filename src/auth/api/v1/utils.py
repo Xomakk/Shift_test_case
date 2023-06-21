@@ -10,17 +10,15 @@ from sqlalchemy import select, Column, ColumnElement
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.auth import models
-from src.auth.schemas import UserCreate
+from src.auth.api.v1 import models
+from src.auth.api.v1.schemas import UserCreate
 from src import config as cfg
 from src.database import get_async_session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 
 async def create_token(db: AsyncSession, user: models.User) -> Column[uuid.UUID]:
-    if user.token:
-        await db.delete(user.token)
     access_token = uuid.uuid4()
     token = models.Token(
         access_token=access_token,
@@ -98,6 +96,11 @@ async def get_current_user(
     return token.user
 
 
+async def revoke_token(token: models.Token, db: AsyncSession) -> None:
+    await db.delete(token)
+    await db.commit()
+
+
 async def check_token(access_token: Annotated[str, Depends(oauth2_scheme)],
                       db: AsyncSession = Depends(get_async_session)) -> None:
     token = await get_token(access_token, db)
@@ -109,8 +112,7 @@ async def check_token(access_token: Annotated[str, Depends(oauth2_scheme)],
         )
 
     if token.time_create < int(time()) - int(cfg.TOKEN_LIFETIME):
-        await db.delete(token)
-        await db.commit()
+        await revoke_token(token, db)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token is expired. You need re-log in.",

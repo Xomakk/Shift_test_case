@@ -9,8 +9,6 @@ from alembic import context
 
 from src import config as cfg
 from src.database import Base
-from src.auth import models as auth_models
-from src.salary import models as salary_models
 
 sys.path.append(os.path.join(sys.path[0], 'src'))
 

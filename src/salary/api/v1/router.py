@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.utils import get_current_user
+from src.auth.api.v1.utils import get_current_user
 from src.database import get_async_session
-from src.salary import schemas, models
-from src.auth import schemas as user_schemas
-from src.salary.utils import edit_user_salary, get_salary_by_user_id
+from src.salary.api.v1 import schemas, models
+from src.auth.api.v1 import schemas as user_schemas
+from src.salary.api.v1.utils import edit_user_salary, get_salary_by_user_id
 
 router = APIRouter(
     prefix="/salary",

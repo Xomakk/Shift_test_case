@@ -5,12 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.utils import verify_password
-from src.salary import models as salary_model
-from src.auth import schemas, models
-from src.auth import utils
+from src.auth.api.v1.utils import verify_password
+from src.auth.api.v1 import models, schemas, utils
 from src.database import get_async_session
-from src.salary.utils import create_salary
+from src.salary.api.v1.utils import create_salary
 
 router = APIRouter(
     prefix="/auth",

@@ -5,7 +5,7 @@ from sqlalchemy import select, Column
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.salary import models, schemas
+from src.salary.api.v1 import schemas, models
 
 
 async def create_salary(user_id: Column[uuid.UUID], db: AsyncSession) -> models.Salary:
