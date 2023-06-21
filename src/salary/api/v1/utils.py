@@ -29,6 +29,7 @@ async def get_salary_by_user_id(user_id: uuid.UUID, db: AsyncSession) -> models.
 async def edit_user_salary(user_id: uuid.UUID, salary_data: schemas.SalaryEdit, db: AsyncSession) -> models.Salary:
     salary = await get_salary_by_user_id(user_id, db)
     try:
+        print(salary_data.increase_date)
         salary.size = salary_data.size
         salary.increase_date = salary_data.increase_date
         db.add(salary)
