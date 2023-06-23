@@ -45,7 +45,7 @@
 
 ## Запуск проекта:
 
-- убедитесь, что у вас установлен **Docker** и **PostgreSQL**
+- убедитесь, что у вас установлен **Docker**
 - в каталоге проекта создайте .env файл с параметрами виртуального окружения по примеру .env.example
 - создайте и запустите Docker контейнеры:
     - ```> docker compose build ```
@@ -55,7 +55,7 @@
 
 ## Запуск тестов:
 
-- убедитесь, что у вас установлен **Docker** и **PostgreSQL**
+- убедитесь, что у вас установлен **Docker**
 - создайте и запустите Docker контейнеры:
     - ```>  docker compose -f tests/docker-compose.tests.yaml build ```
     - ```>  docker compose -f tests/docker-compose.tests.yaml up ```

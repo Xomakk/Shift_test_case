@@ -1,21 +1,26 @@
 version: "3.7"
 services:
-  test_db:
+  dbtest:
     image: postgres:15
     container_name: db_tests
     env_file:
       - .env.tests
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    command: -p 5433
 
-  test_app:
+  apptest:
     build:
       context: ..
     env_file:
       - .env.tests
-    container_name: app
+    container_name: app_tests
     ports:
-      - 8080:8000
+      - 8081:8000
     depends_on:
-      - test_db
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; pytest tests/'
+      - dbtest
+    command: pytest tests/
     external_links:
       - db_tests:db_tests
