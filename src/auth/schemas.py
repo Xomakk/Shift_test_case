@@ -24,7 +24,8 @@ class UserBase(BaseModel):
     email: EmailStr
     name: str
     lastname: str
-    surname: str
+    patronymic: str
+    is_admin: bool = False
 
 
 class UserCreate(UserBase):
@@ -36,3 +37,11 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+
+class UserEdit(BaseModel):
+    id: uuid.UUID
+    name: str | None
+    lastname: str | None
+    patronymic: str | None
+    is_admin: bool | None = False

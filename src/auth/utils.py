@@ -10,8 +10,8 @@ from sqlalchemy import select, Column, ColumnElement
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.auth.api.v1 import models
-from src.auth.api.v1.schemas import UserCreate
+from src.auth import models
+from src.auth import schemas
 from src import config as cfg
 from src.database import get_async_session
 
@@ -30,14 +30,15 @@ async def create_token(db: AsyncSession, user: models.User) -> Column[uuid.UUID]
     return token.access_token
 
 
-async def create_user(data: UserCreate, db: AsyncSession) -> models.User:
+async def create_user(data: schemas.UserCreate, db: AsyncSession) -> models.User:
     hashed_password = hashlib.sha256(data.password.encode('utf-8')).hexdigest()
     db_user = models.User(
         email=data.email,
         password=hashed_password,
         name=data.name,
         lastname=data.lastname,
-        surname=data.surname,
+        patronymic=data.patronymic,
+        is_admin=data.is_admin
     )
     db.add(db_user)
     await db.commit()
@@ -56,7 +57,7 @@ async def get_user_by_email(email: str, db: AsyncSession) -> Union[models.User, 
         return None
 
 
-async def get_user_by_id(id: int, db: AsyncSession) -> Union[models.User, None]:
+async def get_user_by_id(id: uuid.UUID, db: AsyncSession) -> Union[models.User, None]:
     try:
         query = select(models.User).where(models.User.id == id).options(
             selectinload(models.User.token), selectinload(models.User.salary)
@@ -64,7 +65,10 @@ async def get_user_by_id(id: int, db: AsyncSession) -> Union[models.User, None]:
         result = await db.execute(query)
         return result.scalars().one()
     except sqlalchemy.exc.NoResultFound:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user with the specified id was not found",
+        )
 
 
 async def get_token(access_token: str, db: AsyncSession) -> models.Token:
@@ -77,8 +81,7 @@ async def get_token(access_token: str, db: AsyncSession) -> models.Token:
     except sqlalchemy.exc.NoResultFound:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token is expired. You need re-log in.",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Token is expired. You need re-log in",
         )
 
 
@@ -91,7 +94,6 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     return token.user
 
@@ -108,17 +110,39 @@ async def check_token(access_token: Annotated[str, Depends(oauth2_scheme)],
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"}
         )
 
     if token.time_create < int(time()) - int(cfg.TOKEN_LIFETIME):
         await revoke_token(token, db)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token is expired. You need re-log in.",
-            headers={"WWW-Authenticate": "Bearer"}
+            detail="Token is expired. You need re-log in",
         )
 
 
 async def verify_password(user_password: Column[str], input_password: str) -> ColumnElement[bool]:
     return user_password == hashlib.sha256(input_password.encode('utf-8')).hexdigest()
+
+
+def check_permission(current_user: schemas.User = Depends(get_current_user)) -> None:
+    if current_user.is_admin:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have the permissions to perform this operation",
+    )
+
+
+async def edit_user_data_by_id(data: schemas.UserEdit, db: AsyncSession) -> models.User:
+    user = await get_user_by_id(data.id, db)
+    if data.name:
+        user.name = data.name
+    if data.lastname:
+        user.lastname = data.lastname
+    if data.patronymic:
+        user.patronymic = data.patronymic
+    if data.is_admin:
+        user.is_admin = data.is_admin
+    db.add(user)
+    await db.commit()
+    return user

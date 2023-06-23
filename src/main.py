@@ -1,8 +1,7 @@
-import uvicorn
 from fastapi import FastAPI, Depends
 
 from src.auth.api.v1.router import router as auth_router
-from src.auth.api.v1.utils import check_token
+from src.auth.utils import check_token
 from src.salary.api.v1.router import router as salary_router
 
 API_VERSION_v1 = "api/v1"

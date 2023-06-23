@@ -3,6 +3,7 @@
 [//]: # (## Endpoints)
 
 [//]: # ()
+
 [//]: # (### Authenticated)
 
 [//]: # (| Api endpoints         | Description                                                                           |)
@@ -18,6 +19,7 @@
 [//]: # (| /api/auth/logout      | Выход пользователя из системы путем удаления предоставленного токена доступа.         |)
 
 [//]: # ()
+
 [//]: # (### Salary)
 
 [//]: # (| Api endpoints     | Description                                                                           |)
@@ -31,20 +33,30 @@
 [//]: # ()
 
 ## О проекте
+
 Сервис просмотра текущей зарплаты и даты следующего повышения. Каждый сотрудник может видеть только свою сумму.
 
 ## Стэк:
+
 - Python 3.10
 - FastAPI
 - SQLAlchemy
 - PostgreSQL
 
 ## Запуск проекта:
+
 - убедитесь, что у вас установлен **Docker** и **PostgreSQL**
 - в каталоге проекта создайте .env файл с параметрами виртуального окружения по примеру .env.example
 - создайте и запустите Docker контейнеры:
-  - ```> docker compose build ```
-  - ```> docker compose up```
+    - ```> docker compose build ```
+    - ```> docker compose up```
 - в случае успешного развертывания, приложение доступно на локальном адресе http://localhost:8080
 - документация приложения можно найти http://localhost:8080/docs
 
+## Запуск тестов:
+
+- убедитесь, что у вас установлен **Docker** и **PostgreSQL**
+- создайте и запустите Docker контейнеры:
+    - ```>  docker compose -f tests/docker-compose.tests.yaml build ```
+    - ```>  docker compose -f tests/docker-compose.tests.yaml up ```
+- в случае успешного развертывания, будут запущено тестирование приложения.

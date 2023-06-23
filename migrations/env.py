@@ -10,9 +10,8 @@ from alembic import context
 from src import config as cfg
 from src.database import Base
 
-from src.auth.api.v1.models import Token, User
-from src.salary.api.v1.models import Salary
-
+from src.auth.models import Token, User
+from src.salary.models import Salary
 
 sys.path.append(os.path.join(sys.path[0], 'src'))
 
